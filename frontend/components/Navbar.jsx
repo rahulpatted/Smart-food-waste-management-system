@@ -22,13 +22,7 @@ export default function Navbar() {
             </Link>
           </div>
 
-          <div className="hidden md:flex space-x-1">
-            <NavLink href="/dashboard">Dashboard</NavLink>
-            <NavLink href="/meals">Meals</NavLink>
-            <NavLink href="/inventory">Inventory</NavLink>
-            <NavLink href="/waste">Waste</NavLink>
-            <NavLink href="/donations">Donations</NavLink>
-          </div>
+
 
           <div className="flex items-center gap-3">
             {/* Dark mode toggle */}

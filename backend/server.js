@@ -20,6 +20,11 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("✅ MongoDB Atlas Connected via .env Successfully"))
 .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
+// Basic Health Check Route
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Smart Food Save API is running successfully!" });
+});
+
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/meals", require("./routes/mealRoutes"));

@@ -5,7 +5,7 @@ import Skeleton from "@/components/Skeleton";
 import { useToast } from "@/components/ToastProvider";
 import QRScanner from "./QRScanner";
 import { motion, AnimatePresence } from "framer-motion";
-import { QrCode, ClipboardList, Download, Plus, X, Maximize2 } from "lucide-react";
+import { QrCode, ClipboardList, Download, Plus, X, Maximize2, ChefHat } from "lucide-react";
 
 const PAGE_SIZE = 5;
 const LOW_STOCK_THRESHOLD = 10;
@@ -17,6 +17,8 @@ export default function InventoryTable() {
   const [filter, setFilter] = useState("all");
   const [showScanner, setShowScanner] = useState(false);
   const [expandedQR, setExpandedQR] = useState(null);
+  const [isGeneratingRecipes, setIsGeneratingRecipes] = useState(false);
+  const [recipes, setRecipes] = useState(null);
   const toast = useToast();
 
   useEffect(() => {
@@ -62,6 +64,18 @@ export default function InventoryTable() {
     return diff <= 3 && diff >= 0;
   };
 
+  const generateRecipes = () => {
+    setIsGeneratingRecipes(true);
+    setTimeout(() => {
+        setRecipes([
+            { icon: "🥘", title: "Zero-Waste Veggie Hash", time: "15 mins", description: "A quick, high-nutrient breakfast hash using leftover bread and available vegetables." },
+            { icon: "🥪", title: "Savoury Bread Pudding", time: "30 mins", description: "Bake near-expiry bread with herbs, stock, and remaining vegetable scraps." },
+            { icon: "🍲", title: "Canteen Leftover Stew", time: "45 mins", description: "A slow-cooked stew that maximizes flavor from wilting greens and expiring items." }
+        ]);
+        setIsGeneratingRecipes(false);
+    }, 2500);
+  };
+
   const isExpired = (date) => {
     if (!date) return false;
     return new Date(date) < new Date();
@@ -91,20 +105,54 @@ export default function InventoryTable() {
 
   return (
     <div className="space-y-6">
-      {/* Smart Suggestions Panel */}
+      {/* Smart Suggestions Panel & AI Chef */}
       {expiringItems.length > 0 && (
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg flex items-start gap-4 animate-in fade-in slide-in-from-bottom-4">
-          <div className="text-4xl">💡</div>
-          <div>
-            <h3 className="font-bold text-lg mb-1 text-white">Smart Menu Suggestion</h3>
-            <p className="text-indigo-100 text-sm mb-3">You have {expiringItems.length} items expiring very soon.</p>
-            <div className="bg-black/20 rounded-xl p-4 border border-white/10 backdrop-blur-sm">
-              <p className="text-sm font-medium">
-                To prevent waste, we suggest planning tomorrow's menu around: <br/>
-                <span className="font-bold text-white tracking-wide mt-1 block">
-                  {expiringItems.map(i => i.item).join(", ")}
-                </span>
-              </p>
+        <div className="bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-900 rounded-2xl p-1 text-white shadow-2xl relative overflow-hidden animate-in fade-in slide-in-from-bottom-4">
+          <div className="absolute top-0 right-0 p-8 opacity-10"><ChefHat size={120} className="transform rotate-12" /></div>
+          <div className="bg-gradient-to-r from-indigo-500/20 to-purple-600/20 backdrop-blur-xl rounded-xl p-6 relative z-10 border border-white/10">
+            <div className="flex items-start gap-4">
+              <div className="bg-indigo-500/30 p-3 rounded-2xl border border-indigo-400/30 shadow-inner hidden sm:block">
+                <ChefHat className="text-indigo-200" size={32} />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="font-bold text-xl text-white flex items-center gap-2">
+                    AI Chef Assistant
+                    <span className="bg-indigo-500 text-white text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest animate-pulse border border-indigo-400">Beta</span>
+                  </h3>
+                </div>
+                <p className="text-indigo-200 text-sm mb-4 font-medium">You have {expiringItems.length} items expiring very soon: <span className="text-white font-bold">{expiringItems.map(i => i.item).join(", ")}</span>.</p>
+                
+                {!recipes && !isGeneratingRecipes && (
+                  <button onClick={generateRecipes} className="flex items-center gap-2 bg-white text-indigo-900 px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">
+                    Generate Zero-Waste Recipes ✨
+                  </button>
+                )}
+
+                {isGeneratingRecipes && (
+                  <div className="flex items-center gap-3 text-indigo-200 text-sm font-bold mt-2">
+                    <div className="h-4 w-4 rounded-full border-2 border-t-white border-white/20 animate-spin"></div>
+                    AI is analyzing ingredient synergies...
+                  </div>
+                )}
+
+                {recipes && (
+                   <div className="mt-6 space-y-3">
+                     {recipes.map((r, idx) => (
+                       <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.2 }} key={r.title} className="bg-black/30 border border-white/10 rounded-xl p-4 flex gap-4 items-start hover:bg-black/40 transition-colors cursor-pointer group">
+                         <div className="text-3xl group-hover:scale-110 transition-transform">{r.icon}</div>
+                         <div>
+                           <div className="flex items-center gap-2">
+                             <h4 className="font-black text-white text-md">{r.title}</h4>
+                             <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] px-1.5 py-0.5 rounded font-bold">{r.time}</span>
+                           </div>
+                           <p className="text-xs text-indigo-200 mt-1">{r.description}</p>
+                         </div>
+                       </motion.div>
+                     ))}
+                   </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

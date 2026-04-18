@@ -19,16 +19,10 @@ export default function Home() {
         </p>
         
         <div className="mt-10 flex flex-wrap gap-4 justify-center">
-          <Link href="/dashboard" className="px-8 py-3.5 text-white font-semibold rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-lg shadow-emerald-500/30 transition-all hover:-translate-y-1">
-            Go to Dashboard
-          </Link>
-          <Link href="/donations" className="px-8 py-3.5 text-emerald-700 font-semibold rounded-full bg-white border border-emerald-200 hover:bg-emerald-50 shadow-sm transition-all hover:-translate-y-1">
-            View Donations
-          </Link>
-          <Link href="/login" className="px-8 py-3.5 text-emerald-700 font-semibold rounded-full bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 shadow-sm transition-all hover:-translate-y-1">
+          <Link href="/login" className="px-8 py-3.5 text-white font-semibold rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-lg shadow-emerald-500/30 transition-all hover:-translate-y-1">
             Login
           </Link>
-          <Link href="/register" className="px-8 py-3.5 text-emerald-700 font-semibold rounded-full bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 shadow-sm transition-all hover:-translate-y-1">
+          <Link href="/register" className="px-8 py-3.5 text-emerald-700 font-semibold rounded-full bg-white border border-emerald-200 hover:bg-emerald-50 shadow-sm transition-all hover:-translate-y-1">
             Register
           </Link>
         </div>

@@ -1,0 +1,24 @@
+services:
+  # Backend Node.js Service
+  - type: web
+    name: smart-food-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGO_URI
+        sync: false # To be added in Render Dashboard
+      - key: AI_SERVICE_URL
+        fromService:
+          type: web
+          name: smart-food-ai-service
+          envVarKey: RENDER_EXTERNAL_URL
+
+  # AI Python Service
+  - type: web
+    name: smart-food-ai-service
+    env: python
+    rootDir: ai-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api:app --host 0.0.0.0 --port $PORT
