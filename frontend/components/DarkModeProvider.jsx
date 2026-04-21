@@ -7,15 +7,22 @@ export function DarkModeProvider({ children }) {
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("darkMode") === "true";
-    setDark(saved);
-    document.documentElement.classList.toggle("dark", saved);
+    // Standardize to Light mode on first-visit using a fresh storage key
+    const saved = localStorage.getItem("theme_v2");
+    if (saved === null) {
+      setDark(false);
+      document.documentElement.classList.remove("dark");
+    } else {
+      const isDark = saved === "true";
+      setDark(isDark);
+      document.documentElement.classList.toggle("dark", isDark);
+    }
   }, []);
 
   const toggle = () => {
     const next = !dark;
     setDark(next);
-    localStorage.setItem("darkMode", next);
+    localStorage.setItem("theme_v2", next);
     document.documentElement.classList.toggle("dark", next);
   };
 

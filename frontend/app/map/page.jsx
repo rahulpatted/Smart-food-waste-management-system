@@ -6,7 +6,8 @@ import MapWrapper from "@/components/Map/MapWrapper";
 import Skeleton from "@/components/Skeleton";
 import { useToast } from "@/components/ToastProvider";
 import { motion } from "framer-motion";
-import { Phone, Mail, MapPin, Building2, Navigation } from "lucide-react";
+import { Phone, Mail, MapPin, Building2, Navigation, Crosshair } from "lucide-react";
+import SatelliteScan from "@/components/Map/SatelliteScan";
 
 // Kerala & Karnataka NGOs with real coordinates
 const NGO_DATA = [
@@ -47,6 +48,7 @@ function getDistanceKm(lat1, lng1, lat2, lng2) {
 export default function GlobalMapPage() {
   const [markers, setMarkers] = useState([]);
   const [userPos, setUserPos] = useState(null);
+  const [recenterTrigger, setRecenterTrigger] = useState(0);
   const [loading, setLoading] = useState(true);
   const [nearbyNGOs, setNearbyNGOs] = useState([]);
   const toast = useToast();
@@ -118,66 +120,103 @@ export default function GlobalMapPage() {
     ...markers
   ] : markers;
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { 
+        staggerChildren: 0.15,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+  };
+
   return (
     <div className="flex min-h-[calc(100vh-64px)] bg-slate-50 dark:bg-slate-900 transition-colors">
       <Sidebar />
-      <div className="flex-1 p-6 lg:p-10 overflow-y-auto w-full">
-        <div className="max-w-7xl mx-auto space-y-8">
+      <div className="flex-1 px-6 lg:px-10 py-4 lg:py-6 overflow-y-auto w-full transition-all duration-200 h-[calc(100vh-64px)]">
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="max-w-7xl mx-auto space-y-10"
+        >
 
           {/* Header */}
-          <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Global Geotag Map</h1>
-              <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Real-time waste, donations & nearby NGOs within 60km</p>
-            </div>
-            <div className="flex flex-wrap gap-4">
+          <motion.header variants={itemVariants} className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+             <div>
+                <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-[0.3em] mb-2">Global Operations</p>
+                <h1 className="text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tighter">Geospatial Intelligence</h1>
+                <p className="text-slate-500 dark:text-slate-400 mt-2 font-bold text-sm leading-relaxed max-w-xl">Real-time mapping of waste hotspots, live donations, and partner networks within 60km.</p>
+             </div>
+            <div className="flex flex-wrap gap-4 items-center">
               {[
-                { color: "bg-blue-500", label: "My Position" },
-                { color: "bg-red-500", label: "Waste" },
-                { color: "bg-green-500", label: "Donations" },
-                { color: "bg-purple-500", label: "NGOs" },
+                { color: "bg-blue-500", label: "My Uplink" },
+                { color: "bg-rose-500 animate-pulse", label: "Waste Node" },
+                { color: "bg-emerald-500", label: "Donation Node" },
+                { color: "bg-purple-500", label: "NGO Outpost" },
               ].map(l => (
-                <div key={l.label} className="flex items-center gap-2">
-                  <span className={`w-3 h-3 rounded-full ${l.color} shadow-lg`}></span>
-                  <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">{l.label}</span>
+                <div key={l.label} className="flex items-center gap-2 bg-white dark:bg-slate-800/60 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-white/5 shadow-sm">
+                  <span className={`w-2.5 h-2.5 rounded-full ${l.color} shadow-lg`}></span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">{l.label}</span>
                 </div>
               ))}
             </div>
-          </header>
+          </motion.header>
 
           {/* Map */}
-          <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden h-[500px] relative">
+          <motion.div variants={itemVariants} className="bg-white dark:bg-slate-800/60 backdrop-blur-sm p-2 rounded-[2rem] shadow-xl border border-slate-200 dark:border-white/5 overflow-hidden h-[500px] relative group hover:border-emerald-500/30 transition-all">
             {loading ? (
-              <div className="h-full w-full p-8"><Skeleton className="h-full w-full rounded-2xl" /></div>
+              <div className="h-full w-full p-8"><Skeleton className="h-full w-full rounded-[1.5rem]" /></div>
             ) : (
-              <MapWrapper markers={allMarkers} lat={userPos?.lat} lng={userPos?.lng} />
+              <div className="w-full h-full rounded-[1.5rem] overflow-hidden relative">
+                {userPos ? (
+                  <>
+                    <MapWrapper markers={allMarkers} lat={userPos?.lat} lng={userPos?.lng} recenterTrigger={recenterTrigger} />
+                    
+                    {/* Recenter Button */}
+                    <button 
+                      onClick={() => setRecenterTrigger(prev => prev + 1)}
+                      className="absolute bottom-6 right-6 z-[1000] p-4 bg-white dark:bg-slate-800 text-emerald-500 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 hover:scale-110 active:scale-95 transition-all group"
+                      title="Direct Recenter on my location"
+                    >
+                      <Crosshair size={24} className="group-hover:rotate-90 transition-transform duration-500" />
+                    </button>
+                  </>
+                ) : (
+                   <SatelliteScan />
+                )}
+              </div>
             )}
-          </div>
+          </motion.div>
 
           {/* Nearby NGOs Panel */}
-          <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+          <motion.div variants={itemVariants} className="bg-white dark:bg-slate-800/60 backdrop-blur-sm rounded-[2rem] shadow-xl border border-slate-200 dark:border-white/5 overflow-hidden relative">
+            <div className="p-8 border-b border-slate-100 dark:border-white/5 flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
-                  <Building2 size={20} className="text-purple-500" />
-                  Nearby NGOs
+                <h2 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] flex items-center gap-3">
+                  <span className="w-6 h-px bg-slate-200 dark:bg-slate-700"></span>
+                  Local NGO Directives
                 </h2>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  {userPos ? `${nearbyNGOs.length} partner NGOs within 60km of your location` : "All partner NGOs (enable location to see distances)"}
+                <p className="text-sm text-slate-500 font-bold mt-2">
+                  {userPos ? `${nearbyNGOs.length} verified operations detected within 60km perimeter` : "System scanning globally (Enable GPS for proximity filter)"}
                 </p>
               </div>
               {!userPos && (
-                <div className="text-xs bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 px-3 py-2 rounded-xl font-bold">
-                  📍 Enable GPS to filter by distance
+                <div className="text-[10px] uppercase tracking-widest bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 px-4 py-2 rounded-xl font-black">
+                  📍 Enable GPS for localized sync
                 </div>
               )}
             </div>
 
             <div className="divide-y divide-slate-100 dark:divide-slate-700">
               {(nearbyNGOs.length > 0 ? nearbyNGOs : NGO_DATA.map(n => ({ ...n, distance: null }))).map((ngo, i) => (
-                <motion.div key={ngo.name}
-                  initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                  className="p-5 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors">
+                <div key={ngo.name} className="p-5 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors">
                   <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
@@ -225,7 +264,7 @@ export default function GlobalMapPage() {
                       </a>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
               {userPos && nearbyNGOs.length === 0 && (
                 <div className="p-12 text-center text-slate-400 font-medium">
@@ -234,25 +273,24 @@ export default function GlobalMapPage() {
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Legend Info */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-rose-50 dark:bg-rose-900/20 p-6 rounded-2xl border border-rose-100 dark:border-rose-900/40">
-              <h4 className="text-rose-900 dark:text-rose-300 font-bold mb-1">Waste Hotspots</h4>
-              <p className="text-rose-700 dark:text-rose-400 text-sm">Visualize where most food waste is occurring to optimize supply chains.</p>
+          <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-rose-500/5 dark:bg-rose-500/10 p-8 rounded-[2rem] border border-rose-500/20 dark:border-rose-500/30 group hover:border-rose-500/50 hover:bg-rose-500/10 transition-all shadow-xl">
+              <h4 className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest mb-2 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> Waste Hotspots</h4>
+              <p className="text-rose-900/70 dark:text-rose-200/70 text-sm font-bold leading-relaxed">Visualize where most food waste is occurring to optimize internal dining supply chains.</p>
             </div>
-            <div className="bg-emerald-50 dark:bg-emerald-900/20 p-6 rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
-              <h4 className="text-emerald-900 dark:text-emerald-300 font-bold mb-1">Donation Points</h4>
-              <p className="text-emerald-700 dark:text-emerald-400 text-sm">Real-time pickup locations for NGOs and local charities.</p>
+            <div className="bg-emerald-500/5 dark:bg-emerald-500/10 p-8 rounded-[2rem] border border-emerald-500/20 dark:border-emerald-500/30 group hover:border-emerald-500/50 hover:bg-emerald-500/10 transition-all shadow-xl">
+              <h4 className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-2 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Donation Points</h4>
+              <p className="text-emerald-900/70 dark:text-emerald-200/70 text-sm font-bold leading-relaxed">Real-time pickup coordination vectors for verified NGOs and local charitable trusts.</p>
             </div>
-            <div className="bg-purple-50 dark:bg-purple-900/20 p-6 rounded-2xl border border-purple-100 dark:border-purple-900/40">
-              <h4 className="text-purple-900 dark:text-purple-300 font-bold mb-1">Partner NGOs</h4>
-              <p className="text-purple-700 dark:text-purple-400 text-sm">Green-coded NGO partners filtered within 60km with direct contact links.</p>
+            <div className="bg-purple-500/5 dark:bg-purple-500/10 p-8 rounded-[2rem] border border-purple-500/20 dark:border-purple-500/30 group hover:border-purple-500/50 hover:bg-purple-500/10 transition-all shadow-xl">
+              <h4 className="text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest mb-2 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-purple-500"></span> Partner NGOs</h4>
+              <p className="text-purple-900/70 dark:text-purple-200/70 text-sm font-bold leading-relaxed">Mapped outposts of certified partner organizations ready to distribute surplus safely.</p>
             </div>
-          </div>
-
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );

@@ -104,7 +104,10 @@ export default function DemandChart() {
         titleFont: { size: 14, weight: "bold" },
         bodyFont: { size: 13 },
         cornerRadius: 8,
-        displayColors: false
+        displayColors: false,
+        callbacks: {
+           label: (context) => ` 🍽️ ${context.dataset.label}: ${context.parsed.y} units`
+        }
       }
     },
     scales: {
@@ -119,7 +122,7 @@ export default function DemandChart() {
           padding: 10,
           font: { weight: "600" }, 
           color: "#94a3b8",
-          callback: (value) => `${value} units`
+          callback: (value) => `${value}u`
         }
       }
     }
@@ -128,11 +131,16 @@ export default function DemandChart() {
   return (
     <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-700 hover:border-emerald-500/30 transition-all group">
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Demand Forecast</h2>
-          <p className="text-sm text-slate-500 font-bold uppercase tracking-widest mt-1">Smart Consumption Analysis</p>
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-600 transition-transform group-hover:scale-110">
+            🍽️
+          </div>
+          <div>
+            <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Demand Forecast</h2>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5 opacity-70">AI Consumption Analysis</p>
+          </div>
         </div>
-        <div className="bg-emerald-50 dark:bg-emerald-500/10 px-4 py-2 rounded-2xl">
+        <div className="bg-emerald-50 dark:bg-emerald-500/10 px-4 py-2 rounded-2xl hidden sm:block">
           <span className="text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-tighter">AI Optimized</span>
         </div>
       </div>
@@ -140,7 +148,7 @@ export default function DemandChart() {
       <div className="h-[300px] w-full">
         {loading ? (
              <div className="h-full w-full bg-slate-50 dark:bg-slate-900 rounded-2xl animate-pulse flex items-center justify-center">
-                 <span className="text-slate-400 font-bold text-sm tracking-widest uppercase">Calculating Estimates...</span>
+                 <span className="text-slate-400 font-bold text-xs tracking-widest uppercase">Calculating Estimates...</span>
              </div>
         ) : (
           chartData && <Line data={chartData} options={options} />

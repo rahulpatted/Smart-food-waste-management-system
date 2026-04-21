@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { ChefHat, Plus, Trash2, CalendarCheck, Info } from "lucide-react";
+import API from "@/services/api";
 import { useToast } from "@/components/ToastProvider";
+import Sidebar from "@/components/Sidebar";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const MEALS = ["Breakfast", "Lunch", "Dinner"];
@@ -24,13 +26,33 @@ export default function MenuPlannerPage() {
   const router = useRouter();
   const toast = useToast();
   const [menu, setMenu] = useState(defaultMenu);
+  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null); // { day, meal }
   const [editValue, setEditValue] = useState("");
+
+  const fetchMenu = async () => {
+    try {
+      const { data } = await API.get("/menu");
+      // Convert flat array to nested structure
+      const formatted = {};
+      DAYS.forEach(d => formatted[d] = { Breakfast: "TBD", Lunch: "TBD", Dinner: "TBD" });
+      data.forEach(item => {
+        if (formatted[item.day]) formatted[item.day][item.mealType] = item.foodItem;
+      });
+      setMenu(formatted);
+    } catch (err) {
+      setMenu(defaultMenu);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (user && user.role === "student") {
       router.push("/dashboard");
+      return;
     }
+    fetchMenu();
   }, [user]);
 
   const startEdit = (day, meal) => {
@@ -38,78 +60,97 @@ export default function MenuPlannerPage() {
     setEditValue(menu[day][meal]);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!editValue.trim()) return;
-    setMenu(prev => ({
-      ...prev,
-      [editing.day]: { ...prev[editing.day], [editing.meal]: editValue }
-    }));
-    toast(`✅ ${editing.day} ${editing.meal} updated!`, "success");
-    setEditing(null);
+    try {
+      await API.put("/menu", {
+        day: editing.day,
+        mealType: editing.meal,
+        foodItem: editValue
+      });
+      setMenu(prev => ({
+        ...prev,
+        [editing.day]: { ...prev[editing.day], [editing.meal]: editValue }
+      }));
+      toast(`✅ ${editing.day} ${editing.meal} updated!`, "success");
+      setEditing(null);
+    } catch (err) {
+      toast("Failed to update menu item", "error");
+    }
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl p-8 text-white shadow-2xl shadow-orange-500/20 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-10"><ChefHat size={100} /></div>
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center"><ChefHat size={22} /></div>
-            <h1 className="text-2xl font-black">Weekly Menu Planner</h1>
-          </div>
-          <p className="text-orange-100 font-medium text-sm max-w-lg">Plan and update the weekly canteen menu. Students see this as their meal reference. Click any cell to edit it.</p>
-          <div className="flex items-center gap-2 mt-4 bg-white/10 rounded-xl px-4 py-2 w-fit border border-white/10">
-            <Info size={14} />
-            <p className="text-[11px] font-bold uppercase tracking-widest">Staff & Admin Only</p>
-          </div>
-        </div>
-      </motion.div>
+    <div className="flex min-h-[calc(100vh-64px)] bg-slate-50 dark:bg-slate-900 transition-colors">
+      <Sidebar />
+      <div className="flex-1 overflow-y-auto h-[calc(100vh-64px)] px-6 lg:px-10 py-4 lg:py-6 relative z-10 transition-all duration-200">
+        <div className="max-w-7xl mx-auto space-y-10">
+          <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+             <div>
+                <p className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-[0.3em] mb-2">Culinary Command</p>
+                <h1 className="text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tighter">Menu Planner</h1>
+                <p className="text-slate-500 dark:text-slate-400 mt-2 font-bold text-sm leading-relaxed max-w-xl">Plan and update the weekly canteen menu. Students see this as their meal reference.</p>
+             </div>
+             <div className="hidden md:block text-right">
+                <div className="flex items-center gap-2 mt-4 bg-amber-500/10 px-4 py-2 rounded-xl border border-amber-500/20">
+                  <Info size={14} className="text-amber-600 dark:text-amber-500" />
+                  <p className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest">SysAdmin Mode</p>
+                </div>
+             </div>
+          </header>
 
-      <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-                <th className="py-4 px-6 text-left text-xs font-black text-slate-500 uppercase tracking-widest">Day</th>
-                {MEALS.map(m => (
-                  <th key={m} className="py-4 px-6 text-left text-xs font-black text-slate-500 uppercase tracking-widest">{m}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-              {DAYS.map((day, i) => (
-                <motion.tr key={day} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                  className="hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors">
-                  <td className="py-4 px-6 font-black text-slate-800 dark:text-white text-sm">{day}</td>
-                  {MEALS.map(meal => (
-                    <td key={meal} className="py-4 px-6">
-                      {editing?.day === day && editing?.meal === meal ? (
-                        <div className="flex gap-2">
-                          <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)}
-                            onKeyDown={e => e.key === "Enter" && saveEdit()}
-                            className="flex-1 px-3 py-1.5 text-sm border-2 border-amber-500 rounded-lg bg-amber-50 dark:bg-slate-900 dark:text-white focus:outline-none font-medium" />
-                          <button onClick={saveEdit} className="px-3 py-1.5 bg-amber-500 text-white rounded-lg text-xs font-black hover:bg-amber-600 transition-colors">Save</button>
-                        </div>
-                      ) : (
-                        <div onClick={() => startEdit(day, meal)}
-                          className="flex items-center gap-2 group cursor-pointer px-3 py-2 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all border border-transparent hover:border-amber-200 dark:hover:border-amber-500/20">
-                          <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex-1">{menu[day][meal]}</span>
-                          <span className="text-[10px] font-black text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity uppercase">Edit</span>
-                        </div>
-                      )}
-                    </td>
+          <div className="bg-white dark:bg-slate-800/60 backdrop-blur-sm rounded-[2rem] shadow-xl border border-slate-200 dark:border-white/5 overflow-hidden">
+            <div className="p-8 border-b border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
+                <h2 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] flex items-center gap-3">
+                   <span className="w-6 h-px bg-slate-200 dark:bg-slate-700"></span>
+                   Weekly Schedule
+                </h2>
+                <p className="text-[10px] font-black uppercase text-amber-500 tracking-widest hidden sm:block animate-pulse">Click cell to edit schedule</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700/60">
+                    <th className="py-5 px-8 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Day</th>
+                    {MEALS.map(m => (
+                      <th key={m} className="py-5 px-8 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">{m}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                  {DAYS.map((day, i) => (
+                    <motion.tr key={day} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+                      className="hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors group">
+                      <td className="py-6 px-8 font-black text-slate-800 dark:text-white text-sm">{day}</td>
+                      {MEALS.map(meal => (
+                        <td key={meal} className="py-6 px-8">
+                          {editing?.day === day && editing?.meal === meal ? (
+                            <div className="flex gap-2">
+                              <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)}
+                                onKeyDown={e => e.key === "Enter" && saveEdit()}
+                                className="flex-1 px-4 py-2 text-sm border-2 border-amber-500 rounded-xl bg-amber-50 dark:bg-slate-900 dark:text-white focus:outline-none font-bold" />
+                              <button onClick={saveEdit} className="px-4 py-2 bg-amber-500 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-amber-600 transition-colors shadow-lg active:scale-95">Save</button>
+                            </div>
+                          ) : (
+                            <div onClick={() => startEdit(day, meal)}
+                              className="flex items-center gap-2 group/cell cursor-pointer px-4 py-3 rounded-[1rem] hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all border border-transparent hover:border-amber-200 dark:hover:border-amber-500/20 shadow-sm hover:shadow-md">
+                              <span className="text-sm font-bold text-slate-700 dark:text-slate-300 flex-1">{menu[day][meal]}</span>
+                              <span className="text-[10px] font-black text-amber-500 opacity-0 group-hover/cell:opacity-100 transition-opacity uppercase tracking-widest shrink-0">Edit</span>
+                            </div>
+                          )}
+                        </td>
+                      ))}
+                    </motion.tr>
                   ))}
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="p-6 border-t border-slate-100 dark:border-slate-700 flex justify-end">
-          <button onClick={() => toast("📋 Menu published to all canteen screens!", "success")}
-            className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 text-white rounded-xl font-bold text-sm hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20 active:scale-95">
-            <CalendarCheck size={18} /> Publish Menu
-          </button>
+                </tbody>
+              </table>
+            </div>
+            <div className="p-8 border-t border-slate-100 dark:border-slate-700/60 flex justify-end bg-slate-50/30 dark:bg-transparent">
+              <button onClick={() => toast("📋 Menu published to all canteen screens!", "success")}
+                className="flex items-center gap-2 px-8 py-4 bg-amber-500 text-white rounded-[1.5rem] font-black uppercase text-xs tracking-widest hover:bg-amber-600 transition-all shadow-xl shadow-amber-500/20 active:scale-95">
+                <CalendarCheck size={18} /> Publish Operations
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

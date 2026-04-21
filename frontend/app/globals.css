@@ -11,6 +11,196 @@
   }
 }
 
-.glass-card {
-  @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-xl rounded-2xl;
+/* ─── Sleek Professional Scrollbar ──────────────────────────── */
+* {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
 }
+
+/* Chrome, Edge, Safari */
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.3);
+  border-radius: 999px;
+  transition: background 0.2s;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
+
+/* Dark mode scrollbar */
+.dark *::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.45);
+}
+/* ─────────────────────────────────────────────────────────── */
+
+.glass-card {
+  @apply bg-white/70 dark:bg-slate-800/70 backdrop-blur-lg border border-white/20 dark:border-slate-700/30 shadow-xl rounded-2xl;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.1); }
+}
+
+.animate-float {
+  animation: float 8s ease-in-out infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 10s ease-in-out infinite;
+}
+
+.mesh-gradient {
+  background: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.2) 0px, transparent 55%),
+              radial-gradient(at 50% 0%, rgba(20, 184, 166, 0.2) 0px, transparent 55%),
+              radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.2) 0px, transparent 55%),
+              radial-gradient(at 50% 50%, rgba(255, 255, 255, 0.5) 0px, transparent 100%);
+  background-attachment: fixed;
+}
+
+.dark .mesh-gradient {
+  background: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+              radial-gradient(at 50% 0%, rgba(20, 184, 166, 0.12) 0px, transparent 50%),
+              radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.12) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+@keyframes sunlight {
+  0% { transform: translate(-10%, -10%) rotate(0deg); opacity: 0.1; }
+  50% { transform: translate(10%, 10%) rotate(5deg); opacity: 0.2; }
+  100% { transform: translate(-10%, -10%) rotate(0deg); opacity: 0.1; }
+}
+
+.animate-sunlight {
+  animation: sunlight 20s ease-in-out infinite;
+}
+
+.light-shimmer {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 200%;
+  animation: shimmer-swipe 10s linear infinite;
+}
+
+@keyframes shimmer-swipe {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-effect {
+  position: relative;
+  overflow: hidden;
+  background: rgba(100, 116, 139, 0.1);
+}
+
+.shimmer-effect::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.05) 20%,
+    rgba(255, 255, 255, 0.2) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: shimmer-swipe 2.5s infinite;
+}
+
+.dark .shimmer-effect {
+  background: rgba(30, 41, 59, 0.6);
+}
+
+.dark .shimmer-effect::after {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.02) 20%,
+    rgba(255, 255, 255, 0.08) 60%,
+    rgba(255, 255, 255, 0)
+  );
+}
+.premium-glass {
+  @apply bg-white/10 dark:bg-slate-900/30 backdrop-blur-2xl border border-white/20 dark:border-white/5 shadow-[0_10px_35px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)];
+}
+
+.text-glow {
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+}
+
+.dark .text-glow {
+  text-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
+}
+
+@keyframes slow-pan {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-slow-pan {
+  background-size: 200% 200%;
+  animation: slow-pan 15s ease infinite;
+}
+
+/* ─── Hover Spotlight Utility ────────────────────────────── */
+.spotlight-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.spotlight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+    rgba(16, 185, 129, 0.06), 
+    transparent 40%
+  );
+  opacity: 0;
+  transition: opacity 0.5s;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.spotlight-card:hover::before {
+  opacity: 1;
+}
+
+.dark .spotlight-card::before {
+  background: radial-gradient(
+    800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+    rgba(16, 185, 129, 0.15), 
+    transparent 40%
+  );
+}
+/* ─────────────────────────────────────────────────────────── */

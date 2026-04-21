@@ -40,10 +40,24 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Incorrect password. Please try again." });
 
+    if (user.status === "suspended") {
+      return res.status(403).json({ message: "Your account has been suspended by the campus administrator. Please contact support." });
+    }
+
     const token = generateToken(user);
     res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (error) {
     console.error("Login error:", error.message);
     res.status(500).json({ message: "Server error during login: " + error.message });
   }
-};
+};
+
+exports.getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Server error fetching profile" });
+  }
+};

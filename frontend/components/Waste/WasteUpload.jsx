@@ -4,7 +4,7 @@ import API from "@/services/api";
 import { useToast } from "@/components/ToastProvider";
 import Skeleton from "@/components/Skeleton";
 import MapWrapper from "@/components/Map/MapWrapper";
-import { Trash2, Camera, X } from "lucide-react";
+import { Trash2, Camera, X, Mic, MicOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const PAGE_SIZE = 5;
@@ -20,6 +20,7 @@ export default function WasteUpload() {
   const [coordinates, setCoordinates] = useState(null);
   const [expandedMap, setExpandedMap] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [isListening, setIsListening] = useState(false);
   const toast = useToast();
 
   const fetchLogs = () => {
@@ -61,6 +62,56 @@ export default function WasteUpload() {
     toast("Waste logs exported as CSV!", "success");
   };
 
+  const startVoiceEntry = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast("Voice recognition not supported in this browser.", "error");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      toast("Listening... Try: 'Log 5kg of edible waste'", "info");
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript.toLowerCase();
+      console.log("Voice Transcript:", transcript);
+
+      // Simple Parsing Logic: "log [X]kg [type] waste"
+      const weightMatch = transcript.match(/(\d+(\.\d+)?)\s*(kg|kilograms)/);
+      const typeMatch = transcript.match(/(edible|spoiled|peels)/);
+
+      if (weightMatch) {
+        setWeight(weightMatch[1]);
+        toast(`Captured Weight: ${weightMatch[1]}kg`, "success");
+      }
+      if (typeMatch) {
+        setType(typeMatch[1]);
+        toast(`Captured Type: ${typeMatch[1]}`, "success");
+      }
+
+      if (!weightMatch && !typeMatch) {
+        toast("Couldn't process voice. Try 'Log 10kg edible'", "warning");
+      }
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+      toast("Voice entry failed. Try again.", "error");
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
+  };
+
   const totalPages = Math.ceil(logs.length / PAGE_SIZE);
   const paginated = logs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
@@ -77,11 +128,21 @@ export default function WasteUpload() {
         </div>
         <form onSubmit={submitWaste} className="p-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+            <div className="relative">
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Measured Weight (kg)</label>
-              <input type="number" step="0.1" required value={weight}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors bg-slate-50 dark:bg-slate-900 font-medium dark:text-white"
-                placeholder="Ex: 5.2" onChange={e => setWeight(e.target.value)} />
+              <div className="relative">
+                <input type="number" step="0.1" required value={weight}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors bg-slate-50 dark:bg-slate-900 font-medium dark:text-white"
+                  placeholder="Ex: 5.2" onChange={e => setWeight(e.target.value)} />
+                <button 
+                  type="button"
+                  onClick={startVoiceEntry}
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                  title="Voice Entry"
+                >
+                  {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+                </button>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Condition Type</label>
