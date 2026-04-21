@@ -27,24 +27,34 @@ exports.updateProfile = async (req, res) => {
 };
 
 exports.getUserStats = async (req, res) => {
+  const timerLabel = `getUserStats Performance [${req.user.id}]`;
+  console.time(timerLabel);
   try {
     const userId = req.user.id;
-    const user = await User.findById(userId);
+
+    // Use Promise.all to run non-dependent queries in parallel for better performance
+    const [user, mealsBooked, donationsMade, volunteerCount, donations, totalUsers] = await Promise.all([
+      User.findById(userId),
+      Meal.countDocuments({ registeredStudents: userId }),
+      Donation.countDocuments({ donorId: userId }),
+      Donation.countDocuments({ volunteers: userId }),
+      Donation.find({ donorId: userId, status: { $in: ["Delivered", "Claimed & Collected", "Assigned", "Pending"] } }),
+      User.countDocuments({ role: "student" })
+    ]);
     
-    // Calculate stats depending on role
-    const mealsBooked = await Meal.countDocuments({ registeredStudents: userId });
-    const donationsMade = await Donation.countDocuments({ donorId: userId });
-    const volunteerCount = await Donation.countDocuments({ volunteers: userId });
-    
+    if (!user) {
+      console.timeEnd(timerLabel);
+      return res.status(404).json({ message: "User not found" });
+    }
+
     // Calculate food saved from donations
-    const donations = await Donation.find({ donorId: userId, status: { $in: ["Delivered", "Claimed & Collected", "Assigned", "Pending"] } });
     const foodSavedKg = donations.reduce((acc, curr) => acc + (curr.foodAmount || 0), 0);
     
     // Rank calculation (Simplified for demo)
-    const totalUsers = await User.countDocuments({ role: "student" });
     const higherScoreUsers = await User.countDocuments({ role: "student", ecoScore: { $gt: user.ecoScore || 0 } });
     const rank = higherScoreUsers + 1;
 
+    console.timeEnd(timerLabel);
     res.json({
       mealsBooked,
       donationsMade,
@@ -56,6 +66,7 @@ exports.getUserStats = async (req, res) => {
       rank: `${rank}/${totalUsers}`
     });
   } catch (error) {
+    console.timeEnd(timerLabel);
     res.status(500).json({ message: "Server error fetching stats", error: error.message });
   }
 };
