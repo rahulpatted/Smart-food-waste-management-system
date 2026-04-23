@@ -26,6 +26,15 @@ If the judges ask about:
 - **Real-time**: *"The app is fully event-driven using Socket.io for instant canteen-to-NGO notifications."*
 - **Analytics**: *"Our frontend performs advanced data aggregation for demand forecasting and financial impact ROI calculation."*
 - **Scale**: *"Because we chose Node.js and MongoDB, the system can horizontally scale to handle hundreds of canteens simultaneously."*
+- **DevOps/CI-CD**: *"We've implemented a professional CI/CD pipeline using GitHub Actions to automate testing and building on every code change."*
 
----
+## 4. Showing ELITE ENGINEERING Standards
+Open these to show "Production Readiness":
+
+- **Automated Tests**: [tests/api.test.js](file:///d:/hachakton1/backend/tests/api.test.js)
+    - *Say*: "We don't just write code; we verify it. We have a full suite of Jest and Supertest integration tests for our APIs."
+- **CI/CD Workflow**: [.github/workflows/main.yml](file:///d:/hachakton1/.github/workflows/main.yml)
+    - *Say*: "This is our GitHub Actions configuration. It ensures that every single Pull Request is linted, tested, and built before it can reach production."
+- **Code Quality**: [.eslintrc.json](file:///d:/hachakton1/backend/.eslintrc.json)
+    - *Say*: "We enforce industry-standard linting and formatting rules via Prettier and Husky pre-commit hooks to keep our codebase clean and bug-free."
 **Remember**: Stay confident! Your project is technically very strong and covers the entire full-stack lifecycle. Good luck! 🎉

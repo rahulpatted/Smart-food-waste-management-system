@@ -6,7 +6,7 @@ import {
   CategoryScale,
   LinearScale,
   Tooltip,
-  Legend
+  Legend,
 } from "chart.js";
 import { useState } from "react";
 
@@ -15,13 +15,15 @@ ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 export default function LogisticsChart() {
   const [data] = useState({
     labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
-    datasets: [{
-      label: "Rescue Efficiency",
-      data: [65, 78, 82, 94],
-      backgroundColor: "rgba(99, 102, 241, 0.8)",
-      borderRadius: 8,
-      barThickness: 30
-    }]
+    datasets: [
+      {
+        label: "Rescue Efficiency",
+        data: [65, 78, 82, 94],
+        backgroundColor: "rgba(99, 102, 241, 0.8)",
+        borderRadius: 8,
+        barThickness: 30,
+      },
+    ],
   });
 
   const options = {
@@ -33,19 +35,19 @@ export default function LogisticsChart() {
         backgroundColor: "#1e293b",
         padding: 12,
         callbacks: {
-          label: (context) => ` 🚚 Success: ${context.raw}% recovered`
-        }
-      }
+          label: (context) => ` 🚚 Success: ${context.raw}% recovered`,
+        },
+      },
     },
     scales: {
-      y: { 
-        beginAtZero: true, 
+      y: {
+        beginAtZero: true,
         max: 100,
         ticks: { callback: (v) => `${v}%` },
-        grid: { color: "rgba(0,0,0,0.05)" }
+        grid: { color: "rgba(0,0,0,0.05)" },
       },
-      x: { grid: { display: false } }
-    }
+      x: { grid: { display: false } },
+    },
   };
 
   return (
@@ -55,11 +57,15 @@ export default function LogisticsChart() {
           🚚
         </div>
         <div>
-          <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Logistics Efficiency</h2>
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5 opacity-70">Redistribution Success Rate</p>
+          <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">
+            Logistics Efficiency
+          </h2>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5 opacity-70">
+            Redistribution Success Rate
+          </p>
         </div>
       </div>
-      
+
       <div className="h-[200px] w-full mt-6">
         <Bar data={data} options={options} />
       </div>

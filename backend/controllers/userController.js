@@ -33,15 +33,19 @@ exports.getUserStats = async (req, res) => {
     const userId = req.user.id;
 
     // Use Promise.all to run non-dependent queries in parallel for better performance
-    const [user, mealsBooked, donationsMade, volunteerCount, donations, totalUsers] = await Promise.all([
-      User.findById(userId),
-      Meal.countDocuments({ registeredStudents: userId }),
-      Donation.countDocuments({ donorId: userId }),
-      Donation.countDocuments({ volunteers: userId }),
-      Donation.find({ donorId: userId, status: { $in: ["Delivered", "Claimed & Collected", "Assigned", "Pending"] } }),
-      User.countDocuments({ role: "student" })
-    ]);
-    
+    const [user, mealsBooked, donationsMade, volunteerCount, donations, totalUsers] =
+      await Promise.all([
+        User.findById(userId),
+        Meal.countDocuments({ registeredStudents: userId }),
+        Donation.countDocuments({ donorId: userId }),
+        Donation.countDocuments({ volunteers: userId }),
+        Donation.find({
+          donorId: userId,
+          status: { $in: ["Delivered", "Claimed & Collected", "Assigned", "Pending"] },
+        }),
+        User.countDocuments({ role: "student" }),
+      ]);
+
     if (!user) {
       console.timeEnd(timerLabel);
       return res.status(404).json({ message: "User not found" });
@@ -49,9 +53,12 @@ exports.getUserStats = async (req, res) => {
 
     // Calculate food saved from donations
     const foodSavedKg = donations.reduce((acc, curr) => acc + (curr.foodAmount || 0), 0);
-    
+
     // Rank calculation (Simplified for demo)
-    const higherScoreUsers = await User.countDocuments({ role: "student", ecoScore: { $gt: user.ecoScore || 0 } });
+    const higherScoreUsers = await User.countDocuments({
+      role: "student",
+      ecoScore: { $gt: user.ecoScore || 0 },
+    });
     const rank = higherScoreUsers + 1;
 
     console.timeEnd(timerLabel);
@@ -60,10 +67,10 @@ exports.getUserStats = async (req, res) => {
       donationsMade,
       volunteerCount,
       foodSaved: foodSavedKg,
-      requestsCompleted: donations.filter(d => d.status === "Delivered").length,
+      requestsCompleted: donations.filter((d) => d.status === "Delivered").length,
       ecoScore: user.ecoScore || 0,
       achievements: user.achievements || [],
-      rank: `${rank}/${totalUsers}`
+      rank: `${rank}/${totalUsers}`,
     });
   } catch (error) {
     console.timeEnd(timerLabel);

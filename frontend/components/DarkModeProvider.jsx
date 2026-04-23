@@ -26,11 +26,7 @@ export function DarkModeProvider({ children }) {
     document.documentElement.classList.toggle("dark", next);
   };
 
-  return (
-    <DarkModeContext.Provider value={{ dark, toggle }}>
-      {children}
-    </DarkModeContext.Provider>
-  );
+  return <DarkModeContext.Provider value={{ dark, toggle }}>{children}</DarkModeContext.Provider>;
 }
 
 export const useDarkMode = () => useContext(DarkModeContext);

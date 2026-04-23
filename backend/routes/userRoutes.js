@@ -10,7 +10,12 @@ router.put("/profile", authMiddleware, controller.updateProfile);
 router.get("/stats", authMiddleware, controller.getUserStats);
 
 // Role-based partner listing
-router.get("/all-partners", authMiddleware, checkRole(["admin", "staff", "ngo"]), controller.getAllUsers);
+router.get(
+  "/all-partners",
+  authMiddleware,
+  checkRole(["admin", "staff", "ngo"]),
+  controller.getAllUsers
+);
 router.put("/admin/status/:id", authMiddleware, checkRole(["admin"]), controller.updateUserStatus);
 router.delete("/admin/:id", authMiddleware, checkRole(["admin"]), controller.deleteUser);
 

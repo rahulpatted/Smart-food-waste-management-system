@@ -1,3 +1,4 @@
+const logger = require("../utils/logger");
 let io;
 
 exports.initSocket = (server) => {
@@ -5,18 +6,18 @@ exports.initSocket = (server) => {
   io = socketIo(server, { cors: { origin: "*" } });
 
   io.on("connection", (socket) => {
-    console.log("Client connected");
+    logger.info("📡 Real-time Client Connected");
 
     // Allow clients to join rooms based on their roles (e.g., 'ngo')
     socket.on("join", (role) => {
       if (role) {
         socket.join(role);
-        console.log(`Client joined room: ${role}`);
+        logger.info(`👥 Client joined room: ${role}`);
       }
     });
 
     socket.on("disconnect", () => {
-      console.log("Client disconnected");
+      logger.info("📡 Client Disconnected");
     });
   });
 };

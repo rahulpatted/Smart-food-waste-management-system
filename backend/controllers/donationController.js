@@ -6,10 +6,13 @@ exports.createDonation = async (req, res) => {
     // Set donorId from the authenticated user for security
     const donation = await Donation.create({
       ...req.body,
-      donorId: req.user.id
+      donorId: req.user.id,
     });
     // Alert only NGOs that new food is available in their sector
-    sendAlert(`🤝 New Surplus Food Available: ${donation.foodAmount}kg at ${donation.location}`, "ngo");
+    sendAlert(
+      `🤝 New Surplus Food Available: ${donation.foodAmount}kg at ${donation.location}`,
+      "ngo"
+    );
     res.json(donation);
   } catch (err) {
     res.status(500).json({ message: "Error creating donation", error: err.message });
@@ -37,7 +40,7 @@ exports.updateDonationStatus = async (req, res) => {
     if (!donation) return res.status(404).json({ message: "Donation not found" });
 
     // --- STRICT WORKFLOW LOGIC ---
-    
+
     // 1. Pending -> Assigned (Claiming)
     if (status === "Assigned") {
       if (userRole !== "ngo" && userRole !== "admin") {
@@ -48,7 +51,9 @@ exports.updateDonationStatus = async (req, res) => {
     // 2. Assigned -> Claimed & Collected (Handoff)
     if (status === "Claimed & Collected") {
       if (donation.donorId?.toString() !== userId && userRole !== "admin") {
-        return res.status(403).json({ message: "Only the original donor can confirm the physical hand-over." });
+        return res
+          .status(403)
+          .json({ message: "Only the original donor can confirm the physical hand-over." });
       }
     }
 
@@ -57,9 +62,11 @@ exports.updateDonationStatus = async (req, res) => {
       // NGO who claimed it OR original donor (Staff) OR admin
       const isClaimer = donation.ngoName === (req.user.name || req.user.email);
       const isDonor = donation.donorId?.toString() === userId;
-      
+
       if (!isClaimer && !isDonor && userRole !== "admin") {
-        return res.status(403).json({ message: "Only the assigned NGO or the original Staff donor can mark this as delivered." });
+        return res.status(403).json({
+          message: "Only the assigned NGO or the original Staff donor can mark this as delivered.",
+        });
       }
     }
 
@@ -71,7 +78,7 @@ exports.updateDonationStatus = async (req, res) => {
     if (deliveryCoordinates) updateData.deliveryCoordinates = deliveryCoordinates;
 
     const updated = await Donation.findByIdAndUpdate(id, updateData, { new: true });
-    
+
     // Alert stakeholders about progress
     if (status === "Assigned") {
       sendAlert(`📍 Donation Claimed: An NGO has assigned a pickup for ${updated.foodAmount}kg.`);

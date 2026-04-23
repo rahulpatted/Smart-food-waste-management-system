@@ -1,0 +1,22 @@
+{
+  "name": "smart-food-waste-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.2"
+  },
+  "lint-staged": {
+    "backend/**/*.js": [
+      "npm --prefix backend run format",
+      "npm --prefix backend run lint"
+    ],
+    "frontend/**/*.{js,jsx}": [
+      "npm --prefix frontend run format",
+      "npm --prefix frontend run lint"
+    ]
+  }
+}

@@ -1,11 +1,6 @@
 "use client";
 import { Doughnut } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend
-} from "chart.js";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { useState } from "react";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -13,18 +8,20 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 export default function InventoryChart() {
   const [data] = useState({
     labels: ["Grains", "Staples", "Dairy", "Fruits"],
-    datasets: [{
-      label: "Stock Level",
-      data: [45, 25, 15, 15],
-      backgroundColor: [
-        "rgba(245, 158, 11, 0.8)",
-        "rgba(59, 130, 246, 0.8)",
-        "rgba(16, 185, 129, 0.8)",
-        "rgba(139, 92, 246, 0.8)"
-      ],
-      borderWidth: 0,
-      hoverOffset: 20
-    }]
+    datasets: [
+      {
+        label: "Stock Level",
+        data: [45, 25, 15, 15],
+        backgroundColor: [
+          "rgba(245, 158, 11, 0.8)",
+          "rgba(59, 130, 246, 0.8)",
+          "rgba(16, 185, 129, 0.8)",
+          "rgba(139, 92, 246, 0.8)",
+        ],
+        borderWidth: 0,
+        hoverOffset: 20,
+      },
+    ],
   });
 
   const options = {
@@ -37,17 +34,17 @@ export default function InventoryChart() {
         labels: {
           usePointStyle: true,
           padding: 20,
-          font: { weight: "600", size: 11 }
-        }
+          font: { weight: "600", size: 11 },
+        },
       },
       tooltip: {
         backgroundColor: "#1e293b",
         padding: 12,
         callbacks: {
-          label: (context) => ` 📦 ${context.label}: ${context.raw}% available`
-        }
-      }
-    }
+          label: (context) => ` 📦 ${context.label}: ${context.raw}% available`,
+        },
+      },
+    },
   };
 
   return (
@@ -58,13 +55,17 @@ export default function InventoryChart() {
         </div>
         <h2 className="text-xl font-bold text-slate-800 dark:text-white">Inventory Status</h2>
       </div>
-      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-6 opacity-70">Stock Availability</p>
-      
+      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-6 opacity-70">
+        Stock Availability
+      </p>
+
       <div className="h-[250px] w-full relative">
         <Doughnut data={data} options={options} />
         <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
           <span className="text-2xl font-black text-slate-800 dark:text-white">82%</span>
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Healthy</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+            Healthy
+          </span>
         </div>
       </div>
     </div>

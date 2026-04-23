@@ -3,30 +3,52 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const http = require("http");
-const errorHandler = require("./utils/errorHandler");
 const { initSocket } = require("./services/notificationService");
+
+const morgan = require("morgan");
+const logger = require("./utils/logger");
 
 const app = express();
 const server = http.createServer(app);
 
+// HTTP request logging
+app.use(morgan("combined", { stream: { write: (message) => logger.info(message.trim()) } }));
+
 // Initialize WebSockets securely using the service
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "https://smart-food-waste-management-system-2.onrender.com",
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+      "http://localhost:3001",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json());
 
 // Initialize WebSockets securely using the service
 initSocket(server);
 
-mongoose.connect(process.env.MONGO_URI)
-.then(() => {
-  console.log("✅ MongoDB Atlas Connected via .env Successfully");
-  // Initialize Automated Inventory Scheduler
-  require("./services/inventoryScheduler");
-})
-.catch(err => console.error("❌ MongoDB Connection Error:", err));
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    logger.info("✅ MongoDB Atlas Connected Successfully");
+    // Initialize Automated Inventory Scheduler
+    require("./services/inventoryScheduler");
+  })
+  .catch((err) => logger.error("❌ MongoDB Connection Error: %o", err));
 
 // Basic Health Check Route
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Smart Wastage Management System API is running successfully!" });
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
 });
 
 // Routes
@@ -47,9 +69,20 @@ app.get("/api/admin/users", authMid, checkR(["admin", "ngo"]), userController.ge
 // PING TEST
 app.get("/api/ping", (req, res) => res.json({ message: "pong", time: new Date() }));
 
-console.log("✅ ROUTES REGISTERED: /api/auth, /api/user, /api/admin/users (DIRECT)");
+logger.info("✅ ROUTES REGISTERED: /api/auth, /api/user, /api/admin/users (DIRECT)");
 
-app.use(errorHandler);
+// Error handling middleware (MUST be after all routes)
+app.use((err, req, res, _next) => {
+  logger.error(err.stack);
+  res.status(500).json({
+    message: err.message || "Internal Server Error",
+  });
+});
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Export app for testing, conditionally listen
+if (process.env.NODE_ENV !== "test") {
+  const PORT = process.env.PORT || 5000;
+  server.listen(PORT, () => logger.info(`🚀 Server high-performance uplink on port ${PORT}`));
+}
+
+module.exports = app;

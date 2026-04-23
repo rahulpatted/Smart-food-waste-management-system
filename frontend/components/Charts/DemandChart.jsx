@@ -9,12 +9,21 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 } from "chart.js";
 import { useEffect, useState } from "react";
 import API from "@/services/api";
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 export default function DemandChart() {
   const [chartData, setChartData] = useState(null);
@@ -26,9 +35,9 @@ export default function DemandChart() {
       .then(({ data }) => {
         const forecast = data.forecast || [110, 125, 115, 130, 95, 70, 65];
         const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-        
+
         // Generate professional Actuals (usually +/- 5% of prediction)
-        const actuals = forecast.map(v => Math.round(v * (0.95 + Math.random() * 0.1)));
+        const actuals = forecast.map((v) => Math.round(v * (0.95 + Math.random() * 0.1)));
 
         setChartData({
           labels: days,
@@ -62,8 +71,8 @@ export default function DemandChart() {
               borderDash: [6, 6],
               pointRadius: 0,
               tension: 0.4,
-            }
-          ]
+            },
+          ],
         });
       })
       .catch(() => {
@@ -71,14 +80,16 @@ export default function DemandChart() {
         const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
         setChartData({
           labels: days,
-          datasets: [{
-            label: "AI Predicted Demand (Offline)",
-            data: [120, 140, 130, 150, 110, 80, 75],
-            borderColor: "#10b981",
-            borderWidth: 3,
-            tension: 0.4,
-            fill: false
-          }]
+          datasets: [
+            {
+              label: "AI Predicted Demand (Offline)",
+              data: [120, 140, 130, 150, 110, 80, 75],
+              borderColor: "#10b981",
+              borderWidth: 3,
+              tension: 0.4,
+              fill: false,
+            },
+          ],
         });
       })
       .finally(() => setLoading(false));
@@ -95,8 +106,8 @@ export default function DemandChart() {
           usePointStyle: true,
           padding: 20,
           font: { family: "Inter", size: 12, weight: "600" },
-          color: "#64748b"
-        }
+          color: "#64748b",
+        },
       },
       tooltip: {
         backgroundColor: "#1e293b",
@@ -106,26 +117,26 @@ export default function DemandChart() {
         cornerRadius: 8,
         displayColors: false,
         callbacks: {
-           label: (context) => ` 🍽️ ${context.dataset.label}: ${context.parsed.y} units`
-        }
-      }
+          label: (context) => ` 🍽️ ${context.dataset.label}: ${context.parsed.y} units`,
+        },
+      },
     },
     scales: {
       x: {
         grid: { display: false },
-        ticks: { font: { weight: "600" }, color: "#94a3b8" }
+        ticks: { font: { weight: "600" }, color: "#94a3b8" },
       },
       y: {
         beginAtZero: true,
         grid: { color: "rgba(226, 232, 240, 0.5)", drawBorder: false },
-        ticks: { 
+        ticks: {
           padding: 10,
-          font: { weight: "600" }, 
+          font: { weight: "600" },
           color: "#94a3b8",
-          callback: (value) => `${value}u`
-        }
-      }
-    }
+          callback: (value) => `${value}u`,
+        },
+      },
+    },
   };
 
   return (
@@ -136,20 +147,28 @@ export default function DemandChart() {
             🍽️
           </div>
           <div>
-            <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Demand Forecast</h2>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5 opacity-70">AI Consumption Analysis</p>
+            <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">
+              Demand Forecast
+            </h2>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5 opacity-70">
+              AI Consumption Analysis
+            </p>
           </div>
         </div>
         <div className="bg-emerald-50 dark:bg-emerald-500/10 px-4 py-2 rounded-2xl hidden sm:block">
-          <span className="text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-tighter">AI Optimized</span>
+          <span className="text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-tighter">
+            AI Optimized
+          </span>
         </div>
       </div>
-      
+
       <div className="h-[300px] w-full">
         {loading ? (
-             <div className="h-full w-full bg-slate-50 dark:bg-slate-900 rounded-2xl animate-pulse flex items-center justify-center">
-                 <span className="text-slate-400 font-bold text-xs tracking-widest uppercase">Calculating Estimates...</span>
-             </div>
+          <div className="h-full w-full bg-slate-50 dark:bg-slate-900 rounded-2xl animate-pulse flex items-center justify-center">
+            <span className="text-slate-400 font-bold text-xs tracking-widest uppercase">
+              Calculating Estimates...
+            </span>
+          </div>
         ) : (
           chartData && <Line data={chartData} options={options} />
         )}

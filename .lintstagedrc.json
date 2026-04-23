@@ -1,0 +1,4 @@
+{
+  "backend/**/*.js": ["cd backend && eslint --fix", "cd backend && prettier --write"],
+  "frontend/**/*.{js,jsx}": ["cd frontend && next lint --fix", "cd frontend && prettier --write"]
+}

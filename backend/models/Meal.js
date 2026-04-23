@@ -5,7 +5,7 @@ const mealSchema = new mongoose.Schema({
   mealType: String,
   registeredStudents: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   predictedCount: Number,
-  actualCount: Number
+  actualCount: Number,
 });
 
 module.exports = mongoose.model("Meal", mealSchema);

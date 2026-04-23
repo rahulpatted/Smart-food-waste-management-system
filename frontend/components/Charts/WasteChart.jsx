@@ -6,7 +6,7 @@ import {
   CategoryScale,
   LinearScale,
   Tooltip,
-  Legend
+  Legend,
 } from "chart.js";
 import { useEffect, useState } from "react";
 import API from "@/services/api";
@@ -20,37 +20,47 @@ export default function WasteChart() {
   useEffect(() => {
     API.get("/waste")
       .then(({ data }) => {
+        const ctx = document.createElement("canvas").getContext("2d");
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, "rgba(244, 63, 94, 0.9)");
+        gradient.addColorStop(1, "rgba(244, 63, 94, 0.2)");
+
         if (!data || data.length === 0) {
-          // Show placeholder if no data
           setChartData({
             labels: ["No data yet"],
-            datasets: [{
-              label: "Food Waste (kg)",
-              data: [0],
-              backgroundColor: "rgba(244, 63, 94, 0.4)",
-              borderRadius: 6,
-            }]
+            datasets: [
+              {
+                label: "Food Waste (kg)",
+                data: [0],
+                backgroundColor: gradient,
+                borderRadius: 12,
+              },
+            ],
           });
           return;
         }
 
-        // Group by date label (last 7 operational waste entries)
-        const operationalWaste = data.filter(w => !w.type?.includes("[AUTO-EXPIRED]"));
+        const operationalWaste = data.filter((w) => !w.type?.includes("[AUTO-EXPIRED]"));
         const recent = operationalWaste.slice(0, 7).reverse();
-        const labels = recent.map((w, i) => {
+        const labels = recent.map((w) => {
           const d = new Date(w.createdAt || Date.now());
-          return d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric" });
+          return d.toLocaleDateString("en-IN", { weekday: "short" });
         });
-        const weights = recent.map(w => w.weight || 0);
+        const weights = recent.map((w) => w.weight || 0);
 
         setChartData({
           labels,
-          datasets: [{
-            label: "Food Waste (kg)",
-            data: weights,
-            backgroundColor: "rgba(244, 63, 94, 0.8)",
-            borderRadius: 6,
-          }]
+          datasets: [
+            {
+              label: "Food Waste (kg)",
+              data: weights,
+              backgroundColor: gradient,
+              hoverBackgroundColor: "rgba(244, 63, 94, 1)",
+              borderRadius: 12,
+              borderSkipped: false,
+              barThickness: 30,
+            },
+          ],
         });
       })
       .catch(() => {
@@ -62,9 +72,9 @@ export default function WasteChart() {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { 
-      legend: { 
-        display: false 
+    plugins: {
+      legend: {
+        display: false,
       },
       tooltip: {
         backgroundColor: "#1e293b",
@@ -74,19 +84,19 @@ export default function WasteChart() {
         cornerRadius: 8,
         displayColors: false,
         callbacks: {
-          label: (context) => ` 🗑️ Waste: ${context.parsed.y} kg`
-        }
-      }
+          label: (context) => ` 🗑️ Waste: ${context.parsed.y} kg`,
+        },
+      },
     },
-    scales: { 
-      y: { 
+    scales: {
+      y: {
         beginAtZero: true,
-        grid: { color: "rgba(0,0,0,0.05)" }
+        grid: { color: "rgba(0,0,0,0.05)" },
       },
       x: {
-        grid: { display: false }
-      }
-    }
+        grid: { display: false },
+      },
+    },
   };
 
   return (
@@ -97,15 +107,21 @@ export default function WasteChart() {
         </div>
         <h2 className="text-xl font-bold text-slate-800 dark:text-white">Waste Analytics</h2>
       </div>
-      <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-6 opacity-70">Weekly Disposal Trends</p>
-      
+      <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-6 opacity-70">
+        Weekly Disposal Trends
+      </p>
+
       <div className="h-[350px] w-full">
         {loading && (
           <div className="h-full w-full bg-slate-50 dark:bg-slate-900 rounded-2xl animate-pulse flex items-center justify-center">
-            <span className="text-slate-400 font-bold text-xs tracking-widest uppercase">Fetching Logs...</span>
+            <span className="text-slate-400 font-bold text-xs tracking-widest uppercase">
+              Fetching Logs...
+            </span>
           </div>
         )}
-        {!loading && !chartData && <p className="text-red-400 text-sm">Failed to load data. Check backend.</p>}
+        {!loading && !chartData && (
+          <p className="text-red-400 text-sm">Failed to load data. Check backend.</p>
+        )}
         {!loading && chartData && <Bar data={chartData} options={options} />}
       </div>
     </div>

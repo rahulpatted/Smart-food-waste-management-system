@@ -27,7 +27,7 @@ export function AuthProvider({ children }) {
   const refreshUser = async () => {
     try {
       const { data } = await API.get("/auth/me");
-      setUser(prev => ({ ...prev, ...data }));
+      setUser((prev) => ({ ...prev, ...data }));
       return data;
     } catch (err) {
       console.error("Failed to refresh user profile", err);

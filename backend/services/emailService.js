@@ -16,7 +16,7 @@ async function initTransporter() {
       pass: testAccount.pass, // generated ethereal password
     },
   });
-  
+
   console.log("📨 Ethereal Test Email Account created! Waiting to send alerts...");
   return transporter;
 }
@@ -24,7 +24,7 @@ async function initTransporter() {
 exports.sendHighWasteEmail = async (waste) => {
   try {
     const tp = await initTransporter();
-    
+
     const info = await tp.sendMail({
       from: '"FoodSave System Alerts" <alerts@foodsave.local>',
       to: "admin@foodsave.com", // List of receivers
