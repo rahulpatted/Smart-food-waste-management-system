@@ -84,7 +84,24 @@ jobs:
         run: python -c "from api import app; print('✅ FastAPI app imports successfully')"
         working-directory: ai-service
 
-      - name: Health Check
-        run: |
-          python -c "from model import predict; result = predict(1, 100); print(f'✅ Model prediction works: {result}')"
+      - name: Run Pytest Validation
+        run: pytest tests/ -v
         working-directory: ai-service
+
+  deploy:
+    name: Continuous Deployment
+    needs: [backend, frontend, ai-service]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Trigger Render Deployments
+        run: |
+          echo "Triggering AI Service Deployment..."
+          curl -X POST -s "${{ secrets.RENDER_DEPLOY_HOOK_AI }}" || true
+          
+          echo "Triggering Backend Deployment..."
+          curl -X POST -s "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}" || true
+          
+          echo "Triggering Frontend Deployment..."
+          curl -X POST -s "${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}" || true
