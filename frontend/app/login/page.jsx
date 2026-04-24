@@ -24,13 +24,24 @@ export default function Login() {
     try {
       const { data } = await API.post("/auth/login", { email, password });
       if (data.token) {
+        // Store token and update auth state first
         if (login) login(data.token);
         else localStorage.setItem("token", data.token);
         toast("Welcome back! Logged in successfully.", "success");
+        // Navigate outside the try/catch so navigation errors don't show as auth errors
+        setLoading(false);
         router.push("/dashboard");
+        return;
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid credentials");
+      console.error("Login error:", err);
+      // Show the actual server error message, or a meaningful fallback
+      const message =
+        err.response?.data?.message ||
+        (err.response
+          ? `Server error (${err.response.status})`
+          : "Unable to connect to server. Is the backend running?");
+      setError(message);
     } finally {
       setLoading(false);
     }

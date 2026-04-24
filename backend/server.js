@@ -15,14 +15,17 @@ const server = http.createServer(app);
 app.use(morgan("combined", { stream: { write: (message) => logger.info(message.trim()) } }));
 
 // Initialize WebSockets securely using the service
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "https://smart-food-waste-management-system-2.onrender.com",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "http://localhost:3001",
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: [
-      "https://smart-food-waste-management-system-2.onrender.com",
-      "http://localhost:3000",
-      "http://127.0.0.1:3000",
-      "http://localhost:3001",
-    ],
+    origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -34,13 +37,20 @@ app.use(express.json());
 initSocket(server);
 
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI, {
+    serverSelectionTimeoutMS: 10000, // 10s timeout
+  })
   .then(() => {
     logger.info("✅ MongoDB Atlas Connected Successfully");
     // Initialize Automated Inventory Scheduler
     require("./services/inventoryScheduler");
   })
-  .catch((err) => logger.error("❌ MongoDB Connection Error: %o", err));
+  .catch((err) => {
+    logger.error(
+      "❌ MongoDB Connection Error. Please check if your IP is whitelisted in Atlas: %o",
+      err
+    );
+  });
 
 // Basic Health Check Route
 app.get("/", (req, res) => {
@@ -68,6 +78,20 @@ app.get("/api/admin/users", authMid, checkR(["admin", "ngo"]), userController.ge
 
 // PING TEST
 app.get("/api/ping", (req, res) => res.json({ message: "pong", time: new Date() }));
+
+// DEBUG DB ROUTE
+app.get("/api/debug/db", async (req, res) => {
+  try {
+    const userCount = await mongoose.model("User").countDocuments();
+    res.json({
+      status: "connected",
+      database: mongoose.connection.name,
+      userCount,
+    });
+  } catch (error) {
+    res.status(500).json({ status: "error", error: error.message });
+  }
+});
 
 logger.info("✅ ROUTES REGISTERED: /api/auth, /api/user, /api/admin/users (DIRECT)");
 

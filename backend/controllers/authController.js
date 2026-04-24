@@ -2,7 +2,11 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const generateToken = require("../utils/generateToken");
 
-const ALLOWED_ADMIN_EMAILS = ["rahulpatted02@gmail.com", "darshanhallur36198@gmail.com"];
+const ALLOWED_ADMIN_EMAILS = (
+  process.env.ADMIN_EMAILS || "rahulpatted02@gmail.com,darshanhallur36198@gmail.com"
+)
+  .split(",")
+  .map((e) => e.trim().toLowerCase());
 
 exports.register = async (req, res) => {
   try {
